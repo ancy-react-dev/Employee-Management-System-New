@@ -416,7 +416,18 @@ function handleDeleteEmployee(id: number) {
               <td>{employee.department}</td>
               <td>{employee.designation}</td>
               <td>{employee.joiningDate}</td>
-              <td>{employee.status}</td>
+              
+<td>
+  <span
+    className={`status-badge ${
+      employee.status === "Active" ? "status-active" : "status-inactive"
+    }`}
+  >
+    <span className="status-indicator" />
+    {employee.status}
+  </span>
+</td>
+
               <td>
                 <button onClick={() => alert(JSON.stringify(employee, null, 2))}>
                   View

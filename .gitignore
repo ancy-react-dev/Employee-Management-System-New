@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Environment and private database files
+.env
+server/node
+server/users.db
