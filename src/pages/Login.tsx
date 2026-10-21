@@ -17,7 +17,7 @@ function Login() {
     try {
       console.log("Email being sent:", JSON.stringify(email));
 console.log("Password length:", password.length);
-      const response = await fetch("http://localhost:5000/api/login", {
+const response = await fetch("https://employee-management-api-irpk.onrender.com/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,7 +41,7 @@ console.log("Login response:", response.status, data.message);
 
       sessionStorage.setItem("authToken", data.token);
       setMessage("Login successful!");
-      navigate("/");
+     navigate("/dashboard");
 
     } catch {
       setMessage("Cannot connect to the server. Please try again.");
