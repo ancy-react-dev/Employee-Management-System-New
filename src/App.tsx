@@ -1,6 +1,6 @@
 
 
-import { BrowserRouter, Routes, Route, NavLink, Link, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, NavLink, Link } from "react-router-dom";
 import { useState } from "react";
 import Dashboard from "./components/Dashboard";
 import EmployeeList from "./pages/EmployeeList";
@@ -159,8 +159,7 @@ function App() {
           </header>
 
           <Routes>
-           <Route path="/" element={<Navigate to="/login" replace />} />
-<Route path="/dashboard" element={<Dashboard />} />
+           <Route path="/" element={<Dashboard />} />
             <Route path="/employees" element={<EmployeeList />} />
 
             <Route

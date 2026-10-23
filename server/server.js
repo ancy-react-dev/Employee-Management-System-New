@@ -20,7 +20,7 @@ db.exec(`
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL
   )
-`);
+  `);
 
 app.get("/", (req, res) => {
   res.send("Employee Management Backend is running!");

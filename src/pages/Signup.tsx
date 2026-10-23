@@ -24,7 +24,8 @@ function Signup() {
       });
 
       const data = await response.json();
-
+console.log("Signup status:", response.status);
+console.log("Signup response:", data);
       if (!response.ok) {
         setMessage(data.message || "Account creation failed.");
         return;
