@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
 base: process.env.GITHUB_PAGES
-  ? "/Employee-Management-System-Project-Uploaded/"
+ ? "/Employee-Management-System-New/"
   : "/",
   plugins: [react()],
   test: {
