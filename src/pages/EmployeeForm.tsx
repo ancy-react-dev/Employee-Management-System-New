@@ -77,7 +77,7 @@ function EmployeeForm({ initialData, onSave }: EmployeeFormProps) {
     <div style={{ maxWidth: 500, margin: "20px auto" }}>
       <h2>{initialData ? "Edit Employee" : "Add Employee"}</h2>
 
-      <form onSubmit={handleSubmit}>
+     <form onSubmit={handleSubmit} noValidate>
         <label>Name *</label>
         <input
           name="name"
