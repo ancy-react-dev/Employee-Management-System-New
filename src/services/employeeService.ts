@@ -14,12 +14,14 @@ export async function getEmployees(): Promise<Employee[]> {
     id: number;
     name: string;
     email: string;
+     phone?: string;
   }[] = await response.json();
 
   return users.map((user) => ({
     id: user.id,
     name: user.name,
     email: user.email,
+    phone: user.phone ?? "",
     department: "IT",
     designation: "Developer",
     joiningDate: "2026-01-01",

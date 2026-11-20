@@ -1,11 +1,11 @@
-
+import { vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import EmployeeForm from "./EmployeeForm";
 
 describe("EmployeeForm Jest Tests", () => {
 
   test("should show validation error when required fields are empty", () => {
-    const onSave = jest.fn();
+    const onSave = vi.fn();
 
     render(<EmployeeForm onSave={onSave} />);
 
@@ -21,7 +21,7 @@ describe("EmployeeForm Jest Tests", () => {
   });
 
   test("should show error for invalid email", () => {
-    const onSave = jest.fn();
+    const onSave = vi.fn();
 
     render(<EmployeeForm onSave={onSave} />);
 
@@ -34,7 +34,10 @@ describe("EmployeeForm Jest Tests", () => {
       screen.getByPlaceholderText("Enter email"),
       { target: { value: "invalid-email" } }
     );
-
+fireEvent.change(
+  screen.getByPlaceholderText("Enter 10-digit mobile number"),
+  { target: { value: "9876543210" } }
+);
     fireEvent.change(
       document.querySelector('select[name="department"]')!,
       { target: { value: "IT" } }
@@ -61,7 +64,7 @@ describe("EmployeeForm Jest Tests", () => {
     expect(onSave).not.toHaveBeenCalled();
   });
   test("should add employee with valid details", () => {
-    const onSave = jest.fn();
+    const onSave = vi.fn();
 
     render(<EmployeeForm onSave={onSave} />);
 
@@ -74,7 +77,10 @@ describe("EmployeeForm Jest Tests", () => {
       screen.getByPlaceholderText("Enter email"),
       { target: { value: "ancy@example.com" } }
     );
-
+fireEvent.change(
+  screen.getByPlaceholderText("Enter 10-digit mobile number"),
+  { target: { value: "9876543210" } }
+);
     fireEvent.change(
       document.querySelector('select[name="department"]')!,
       { target: { value: "IT" } }
@@ -98,12 +104,13 @@ describe("EmployeeForm Jest Tests", () => {
     expect(screen.getByText("Employee added successfully!")).toBeTruthy();
   });
   test("should update employee with edited details", () => {
-  const onSave = jest.fn();
+  const onSave = vi.fn();
 
   const initialData = {
     id: 1,
     name: "Ancy",
     email: "ancy@example.com",
+    phone: "9876543210",
     department: "IT",
     designation: "Developer",
     joiningDate: "2026-01-15",

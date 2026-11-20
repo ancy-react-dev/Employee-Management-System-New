@@ -84,7 +84,7 @@ function App() {
               Dashboard
             </NavLink>
 
-            <NavLink to="/employees" onClick={closeMenu} className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+            <NavLink to="/employees" end onClick={closeMenu} className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
               <span className="nav-icon">♙</span>
               Employee List
             </NavLink>
@@ -99,7 +99,7 @@ function App() {
               About
             </NavLink>
 
-            <NavLink to="/admin" onClick={closeMenu} className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+            <NavLink to="/admin" end onClick={closeMenu} className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
               Admin Panel
             </NavLink>
 

@@ -6,14 +6,20 @@ import type { Employee } from "../features/employees/employeeSlice";
 type EmployeeFormProps = {
   initialData?: Employee;
   onSave: (employee: Employee) => void;
+  existingEmployees?: Employee[];
 };
 
-function EmployeeForm({ initialData, onSave }: EmployeeFormProps) {
+function EmployeeForm({
+  initialData,
+  onSave,
+  existingEmployees = [],
+}: EmployeeFormProps) {
   const [form, setForm] = useState<Employee>(
     initialData ?? {
       id: 0,
       name: "",
       email: "",
+      phone: "",
       department: "",
       designation: "",
       joiningDate: "",
@@ -23,7 +29,6 @@ function EmployeeForm({ initialData, onSave }: EmployeeFormProps) {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -39,6 +44,7 @@ function EmployeeForm({ initialData, onSave }: EmployeeFormProps) {
     if (
       !form.name.trim() ||
       !form.email.trim() ||
+      !form.phone.trim() ||
       !form.department ||
       !form.designation.trim() ||
       !form.joiningDate
@@ -48,36 +54,73 @@ function EmployeeForm({ initialData, onSave }: EmployeeFormProps) {
       return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    const email = form.email.trim().toLowerCase();
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    if (!emailRegex.test(email)) {
       setError("Please enter a valid email address.");
       setSuccess("");
       return;
     }
 
-    onSave(form);
+    // Duplicate email validation
+    const duplicateEmail = existingEmployees.some(
+      (employee) =>
+        employee.email.trim().toLowerCase() === email &&
+        employee.id !== initialData?.id
+    );
+
+    if (duplicateEmail) {
+      setError("This email address is already registered.");
+      setSuccess("");
+      return;
+    }
+
+    // Indian mobile number validation
+    const phoneRegex = /^[6-9]\d{9}$/;
+
+    if (!phoneRegex.test(form.phone.trim())) {
+      setError("Please enter a valid 10-digit mobile number.");
+      setSuccess("");
+      return;
+    }
+
+    const employeeData = {
+      ...form,
+      email,
+      phone: form.phone.trim(),
+    };
+
+    onSave(employeeData);
+
     setError("");
     setSuccess(
-      initialData ? "Employee updated successfully!" : "Employee added successfully!"
+      initialData
+        ? "Employee updated successfully!"
+        : "Employee added successfully!"
     );
 
     if (!initialData) {
-  setForm({
-    id: 0,
-    name: "",
-    email: "",
-    department: "",
-    designation: "",
-    joiningDate: "",
-    status: "Active",
-  });
-}
+      setForm({
+        id: 0,
+        name: "",
+        email: "",
+        phone: "",
+        department: "",
+        designation: "",
+        joiningDate: "",
+        status: "Active",
+      });
+    }
   }
 
   return (
     <div style={{ maxWidth: 500, margin: "20px auto" }}>
       <h2>{initialData ? "Edit Employee" : "Add Employee"}</h2>
 
-     <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} noValidate>
         <label>Name *</label>
         <input
           name="name"
@@ -94,6 +137,17 @@ function EmployeeForm({ initialData, onSave }: EmployeeFormProps) {
           value={form.email}
           onChange={handleChange}
           placeholder="Enter email"
+          style={{ display: "block", width: "100%", marginBottom: 12 }}
+        />
+
+        <label>Phone Number *</label>
+        <input
+          name="phone"
+          type="tel"
+          value={form.phone}
+          onChange={handleChange}
+          placeholder="Enter 10-digit mobile number"
+          maxLength={10}
           style={{ display: "block", width: "100%", marginBottom: 12 }}
         />
 

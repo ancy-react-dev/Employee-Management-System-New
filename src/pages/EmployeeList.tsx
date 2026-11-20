@@ -1,43 +1,53 @@
 
-
-
 import { useEffect, useState } from "react";
 import type React from "react";
 import {
   useAppDispatch,
   useAppSelector,
 } from "../app/hooks";
-
 import {
   fetchEmployees,
   addEmployeeAsync,
   updateEmployeeAsync,
   deleteEmployeeAsync,
 } from "../features/employees/employeeSlice";
-
 import type {
   Employee,
 } from "../features/employees/employeeSlice";
-
+import { useSearchParams } from "react-router-dom";
 
 function EmployeeList() {
-  
-const employees = useAppSelector(
-  (state) => state.employees.employees
-);
-const loading = useAppSelector((state) => state.employees.loading);
-const error = useAppSelector((state) => state.employees.error);
-const dispatch = useAppDispatch();
-useEffect(() => {
-  dispatch(fetchEmployees());
-}, [dispatch]);
- const [search, setSearch] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("All");
-const [statusFilter, setStatusFilter] = useState("All");
-const [sortOrder, setSortOrder] = useState("A-Z");
-const [currentPage, setCurrentPage] = useState(1);
+  const employees = useAppSelector(
+    (state) => state.employees.employees
+  );
 
-const employeesPerPage = 5;
+  const loading = useAppSelector(
+    (state) => state.employees.loading
+  );
+
+  const error = useAppSelector(
+    (state) => state.employees.error
+  );
+
+  const [searchParams] = useSearchParams();
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+
+  const [search, setSearch] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState(
+    searchParams.get("department") || "All"
+  );
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get("status") || "All"
+  );
+  const [sortOrder, setSortOrder] = useState("A-Z");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const employeesPerPage = 5;
+
   const [editingId, setEditingId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
 
@@ -45,177 +55,203 @@ const employeesPerPage = 5;
     id: 0,
     name: "",
     email: "",
+    phone: "",
     department: "",
     designation: "",
     joiningDate: "",
     status: "Active",
   });
-const filteredEmployees = employees
-  .filter((employee) =>
-    employee.name.toLowerCase().includes(search.toLowerCase())
-  )
-  .filter((employee) =>
-    departmentFilter === "All"
-      ? true
-      : employee.department === departmentFilter
-  )
-  .filter((employee) =>
-    statusFilter === "All"
-      ? true
-      : employee.status === statusFilter
-  )
-  .sort((a, b) =>
-    sortOrder === "A-Z"
-      ? a.name.localeCompare(b.name)
-      : b.name.localeCompare(a.name)
+
+  const filteredEmployees = employees
+    .filter((employee) =>
+      employee.name.toLowerCase().includes(search.toLowerCase())
+    )
+    .filter((employee) =>
+      departmentFilter === "All"
+        ? true
+        : employee.department === departmentFilter
+    )
+    .filter((employee) =>
+      statusFilter === "All"
+        ? true
+        : employee.status === statusFilter
+    )
+    .sort((a, b) =>
+      sortOrder === "A-Z"
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name)
+    );
+
+  const totalPages = Math.ceil(
+    filteredEmployees.length / employeesPerPage
   );
 
-const totalPages = Math.ceil(filteredEmployees.length / employeesPerPage);
+  const currentEmployees = filteredEmployees.slice(
+    (currentPage - 1) * employeesPerPage,
+    currentPage * employeesPerPage
+  );
 
-const currentEmployees = filteredEmployees.slice(
-  (currentPage - 1) * employeesPerPage,
-  currentPage * employeesPerPage
+  function resetForm() {
+    setForm({
+      id: 0,
+      name: "",
+      email: "",
+      phone: "",
+      department: "",
+      designation: "",
+      joiningDate: "",
+      status: "Active",
+    });
+  }
+
+  function handleEdit(employee: Employee) {
+    setForm({
+      ...employee,
+      phone: employee.phone ?? "",
+    });
+    setEditingId(employee.id);
+    setMessage("");
+  }
+
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+    setMessage("");
+  }
+
+  function validateForm(isEdit: boolean): boolean {
+    if (
+      !form.name.trim() ||
+      !form.email.trim() ||
+      !form.phone.trim() ||
+      !form.department ||
+      !form.designation.trim() ||
+      !form.joiningDate
+    ) {
+      setMessage("Please fill in all required fields.");
+      return false;
+    }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    if (!emailRegex.test(form.email.trim())) {
+      setMessage("Please enter a valid email address.");
+      return false;
+    }
+
+   const duplicateEmail = employees.some(
+  (employee) =>
+    employee.email.trim().toLowerCase() ===
+      form.email.trim().toLowerCase() &&
+    employee.id !== (isEdit ? editingId : null)
 );
- 
-  
 
- 
-function handleEdit(employee: Employee) {
-  setForm({ ...employee });
-  setEditingId(employee.id);
-  setMessage("");
+if (duplicateEmail) {
+  setMessage("This email address is already registered.");
+  return false;
 }
+    const phoneRegex = /^[6-9]\d{9}$/;
 
-function handleChange(
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-) {
-  setForm({ ...form, [e.target.name]: e.target.value });
-}
+    if (!phoneRegex.test(form.phone.trim())) {
+      setMessage("Please enter a valid 10-digit mobile number.");
+      return false;
+    }
 
+    return true;
+  }
 
-
-
-
-async function handleUpdate(e: React.FormEvent<HTMLFormElement>) {
-  e.preventDefault();
-
-  if (
-    !form.name.trim() ||
-    !form.email.trim() ||
-    !form.department ||
-    !form.designation.trim() ||
-    !form.joiningDate
+  async function handleUpdate(
+    e: React.FormEvent<HTMLFormElement>
   ) {
-    setMessage("Please fill in all required fields.");
-    return;
+    e.preventDefault();
+
+    if (editingId === null) {
+      setMessage("Please select an employee to edit.");
+      return;
+    }
+
+    if (!validateForm(true)) return;
+
+    const updatedEmployee: Employee = {
+      ...form,
+      id: editingId,
+      name: form.name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      status: form.status,
+    };
+
+    try {
+      await dispatch(updateEmployeeAsync(updatedEmployee)).unwrap();
+
+      setEditingId(null);
+      resetForm();
+      setMessage("Employee updated successfully!");
+    } catch (error) {
+      console.error(error);
+      setMessage("Update failed. Please try again.");
+    }
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    setMessage("Please enter a valid email address.");
-    return;
-  }
-
-  if (editingId === null) {
-    setMessage("Please select an employee to edit.");
-    return;
-  }
-
-  const updatedEmployee: Employee = {
-    ...form,
-    id: editingId,
-    status: form.status,
-  };
-
-  try {
-    await dispatch(updateEmployeeAsync(updatedEmployee)).unwrap();
-
-    setEditingId(null);
-    setForm({
-      id: 0,
-      name: "",
-      email: "",
-      department: "",
-      designation: "",
-      joiningDate: "",
-      status: "Active",
-    });
-
-    setMessage("Employee updated successfully!");
-  } catch (error) {
-    console.error(error);
-    setMessage("Update failed. Please try again.");
-  }
-}
-
-async function handleAddEmployee(
-  e: React.FormEvent<HTMLFormElement>
-) {
-  e.preventDefault();
-
-  if (
-    !form.name.trim() ||
-    !form.email.trim() ||
-    !form.department ||
-    !form.designation.trim() ||
-    !form.joiningDate
+  async function handleAddEmployee(
+    e: React.FormEvent<HTMLFormElement>
   ) {
-    setMessage("Please fill in all required fields.");
-    return;
+    e.preventDefault();
+
+    if (!validateForm(false)) return;
+
+    const newEmployee: Employee = {
+      ...form,
+      id: Date.now(),
+      name: form.name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      status: form.status,
+    };
+
+    try {
+      await dispatch(addEmployeeAsync(newEmployee)).unwrap();
+
+      setSearch("");
+      setCurrentPage(1);
+      resetForm();
+      setMessage("Employee added successfully!");
+    } catch (error) {
+      console.error(error);
+      setMessage("Failed to add employee. Please try again.");
+    }
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-  setMessage("Please enter a valid email address.");
-  return;
-}
+  function handleDeleteEmployee(id: number) {
+    dispatch(deleteEmployeeAsync(id));
 
-  const newEmployee: Employee = {
-    ...form,
-    id: Date.now(),
-    status: form.status as "Active" | "Inactive",
-  };
+    if (editingId === id) {
+      setEditingId(null);
+      resetForm();
+    }
 
-  try {
-    await dispatch(addEmployeeAsync(newEmployee)).unwrap();
-setSearch("");
-setCurrentPage(1);
-    setForm({
-      id: 0,
-      name: "",
-      email: "",
-      department: "",
-      designation: "",
-      joiningDate: "",
-      status: "Active",
-    });
-
-    setMessage("Employee added successfully!");
-  } catch {
-    setMessage("Failed to add employee. Please try again.");
-  }
-}
-
-function handleDeleteEmployee(id: number) {
-  dispatch(deleteEmployeeAsync(id));
-
-  if (editingId === id) {
-    setEditingId(null);
+    setMessage("Employee deleted successfully!");
   }
 
-  setMessage("Employee deleted successfully!");
-}
-
- return (
+  return (
     <div style={{ padding: "20px" }}>
       <h1>Employee Management</h1>
 
-      {message && <p>{message}</p>}
-{loading && <p>Loading employees...</p>}
+      {message && (
+        <p style={{ color: "red" }}>{message}</p>
+      )}
 
-{error && <p>Error: {error}</p>}
+      {loading && <p>Loading employees...</p>}
 
-{!loading && !error && employees.length === 0 && (
-  <p>No employees found.</p>
-)}
+      {error && <p>Error: {error}</p>}
+
+      {!loading && !error && employees.length === 0 && (
+        <p>No employees found.</p>
+      )}
 
       {editingId === null && (
         <form onSubmit={handleAddEmployee}>
@@ -235,6 +271,16 @@ function handleDeleteEmployee(id: number) {
             placeholder="Email"
             value={form.email}
             onChange={handleChange}
+            required
+          />
+
+          <input
+            name="phone"
+            type="tel"
+            placeholder="Phone Number"
+            value={form.phone}
+            onChange={handleChange}
+            maxLength={10}
             required
           />
 
@@ -301,6 +347,16 @@ function handleDeleteEmployee(id: number) {
             required
           />
 
+          <input
+            name="phone"
+            type="tel"
+            placeholder="Phone Number"
+            value={form.phone}
+            onChange={handleChange}
+            maxLength={10}
+            required
+          />
+
           <select
             name="department"
             value={form.department}
@@ -345,6 +401,7 @@ function handleDeleteEmployee(id: number) {
             type="button"
             onClick={() => {
               setEditingId(null);
+              resetForm();
               setMessage("");
             }}
           >
@@ -353,43 +410,50 @@ function handleDeleteEmployee(id: number) {
         </form>
       )}
 
-      
-<div style={{ marginBottom: "20px" }}>
-  <select
-    value={departmentFilter}
-    onChange={(e) => {
-      setDepartmentFilter(e.target.value);
-      setCurrentPage(1);
-    }}
-  >
-    <option value="All">All Departments</option>
-    <option value="IT">IT</option>
-    <option value="HR">HR</option>
-    <option value="Finance">Finance</option>
-    <option value="Marketing">Marketing</option>
-  </select>
+      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+        <input
+          placeholder="Search employee"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
+        />
 
-  <select
-    value={statusFilter}
-    onChange={(e) => {
-      setStatusFilter(e.target.value);
-      setCurrentPage(1);
-    }}
-  >
-    <option value="All">All Status</option>
-    <option value="Active">Active</option>
-    <option value="Inactive">Inactive</option>
-  </select>
+        <select
+          value={departmentFilter}
+          onChange={(e) => {
+            setDepartmentFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="All">All Departments</option>
+          <option value="IT">IT</option>
+          <option value="HR">HR</option>
+          <option value="Finance">Finance</option>
+          <option value="Marketing">Marketing</option>
+        </select>
 
-  <select
-    value={sortOrder}
-    onChange={(e) => setSortOrder(e.target.value)}
-  >
-    <option value="A-Z">Name A-Z</option>
-    <option value="Z-A">Name Z-A</option>
-  </select>
-</div>
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="All">All Status</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
 
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+        >
+          <option value="A-Z">Name A-Z</option>
+          <option value="Z-A">Name Z-A</option>
+        </select>
+      </div>
 
       <table
         border={1}
@@ -400,6 +464,7 @@ function handleDeleteEmployee(id: number) {
           <tr>
             <th>Name</th>
             <th>Email</th>
+            <th>Phone</th>
             <th>Department</th>
             <th>Designation</th>
             <th>Joining Date</th>
@@ -413,59 +478,67 @@ function handleDeleteEmployee(id: number) {
             <tr key={employee.id}>
               <td>{employee.name}</td>
               <td>{employee.email}</td>
+              <td>{employee.phone ?? "-"}</td>
               <td>{employee.department}</td>
               <td>{employee.designation}</td>
               <td>{employee.joiningDate}</td>
-              
-<td>
-  <span
-    className={`status-badge ${
-      employee.status === "Active" ? "status-active" : "status-inactive"
-    }`}
-  >
-    <span className="status-indicator" />
-    {employee.status}
-  </span>
-</td>
 
               <td>
-                <button onClick={() => alert(JSON.stringify(employee, null, 2))}>
+                <span
+                  className={`status-badge ${
+                    employee.status === "Active"
+                      ? "status-active"
+                      : "status-inactive"
+                  }`}
+                >
+                  <span className="status-indicator" />
+                  {employee.status}
+                </span>
+              </td>
+
+              <td>
+                <button
+                  onClick={() =>
+                    alert(JSON.stringify(employee, null, 2))
+                  }
+                >
                   View
                 </button>{" "}
+
                 <button onClick={() => handleEdit(employee)}>
                   Edit
                 </button>{" "}
-                <button onClick={() => handleDeleteEmployee(employee.id)}>
-  Delete
-</button>
+
+                <button
+                  onClick={() => handleDeleteEmployee(employee.id)}
+                >
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      
-<div style={{ marginTop: "20px" }}>
-  <button
-    disabled={currentPage === 1}
-    onClick={() => setCurrentPage((page) => page - 1)}
-  >
-    Previous
-  </button>
 
-  <span style={{ margin: "0 12px" }}>
-    Page {currentPage} of {Math.max(totalPages, 1)}
-  </span>
+      <div style={{ marginTop: "20px" }}>
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((page) => page - 1)}
+        >
+          Previous
+        </button>
 
-  <button
-    disabled={currentPage >= totalPages}
-    onClick={() => setCurrentPage((page) => page + 1)}
-  >
-    Next
-  </button>
-</div>
+        <span style={{ margin: "0 12px" }}>
+          Page {currentPage} of {Math.max(totalPages, 1)}
+        </span>
 
-
-      
+        <button
+          disabled={currentPage >= totalPages}
+          onClick={() => setCurrentPage((page) => page + 1)}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

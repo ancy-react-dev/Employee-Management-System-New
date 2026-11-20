@@ -1,10 +1,10 @@
-
+import { vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import EmployeeForm from "./EmployeeForm";
 
 describe("EmployeeForm RTL Testing", () => {
   test("should display Add Employee heading", () => {
-    render(<EmployeeForm onSave={jest.fn()} />);
+    render(<EmployeeForm onSave={vi.fn()} />);
 
     expect(
       screen.getByRole("heading", { name: "Add Employee" })
@@ -12,7 +12,7 @@ describe("EmployeeForm RTL Testing", () => {
   });
 
   test("should display input fields", () => {
-    render(<EmployeeForm onSave={jest.fn()} />);
+    render(<EmployeeForm onSave={vi.fn()} />);
 
     expect(
       screen.getByPlaceholderText("Enter employee name")
@@ -28,7 +28,7 @@ describe("EmployeeForm RTL Testing", () => {
   });
 
   test("should display department options", () => {
-    render(<EmployeeForm onSave={jest.fn()} />);
+    render(<EmployeeForm onSave={vi.fn()} />);
 
     expect(screen.getByText("Select Department")).toBeInTheDocument();
     expect(screen.getByText("IT")).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe("EmployeeForm RTL Testing", () => {
   });
 
   test("should show error for empty form", () => {
-    render(<EmployeeForm onSave={jest.fn()} />);
+    render(<EmployeeForm onSave={vi.fn()} />);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Add Employee" })
@@ -48,7 +48,7 @@ describe("EmployeeForm RTL Testing", () => {
   });
 
   test("should show error for invalid email", () => {
-    render(<EmployeeForm onSave={jest.fn()} />);
+    render(<EmployeeForm onSave={vi.fn()} />);
 
     fireEvent.change(
       screen.getByPlaceholderText("Enter employee name"),
@@ -59,7 +59,10 @@ describe("EmployeeForm RTL Testing", () => {
       screen.getByPlaceholderText("Enter email"),
       { target: { value: "ancy123" } }
     );
-
+fireEvent.change(
+  screen.getByPlaceholderText("Enter 10-digit mobile number"),
+  { target: { value: "9876543210" } }
+);
     fireEvent.change(
       screen.getAllByRole("combobox")[0],
       { target: { value: "IT" } }
@@ -85,7 +88,7 @@ describe("EmployeeForm RTL Testing", () => {
   });
 
   test("should submit valid employee details", () => {
-    const onSave = jest.fn();
+    const onSave = vi.fn();
 
     render(<EmployeeForm onSave={onSave} />);
 
@@ -98,7 +101,10 @@ describe("EmployeeForm RTL Testing", () => {
       screen.getByPlaceholderText("Enter email"),
       { target: { value: "ancy@gmail.com" } }
     );
-
+fireEvent.change(
+  screen.getByPlaceholderText("Enter 10-digit mobile number"),
+  { target: { value: "9876543210" } }
+);
     fireEvent.change(
       screen.getAllByRole("combobox")[0],
       { target: { value: "IT" } }
@@ -122,6 +128,7 @@ describe("EmployeeForm RTL Testing", () => {
       id: 0,
       name: "Ancy",
       email: "ancy@gmail.com",
+      phone: "9876543210",
       department: "IT",
       designation: "Developer",
       joiningDate: "2026-11-09",
@@ -130,7 +137,7 @@ describe("EmployeeForm RTL Testing", () => {
   });
 
   test("should display success message", () => {
-    render(<EmployeeForm onSave={jest.fn()} />);
+    render(<EmployeeForm onSave={vi.fn()} />);
 
     fireEvent.change(
       screen.getByPlaceholderText("Enter employee name"),
@@ -141,7 +148,10 @@ describe("EmployeeForm RTL Testing", () => {
       screen.getByPlaceholderText("Enter email"),
       { target: { value: "ancy@gmail.com" } }
     );
-
+fireEvent.change(
+  screen.getByPlaceholderText("Enter 10-digit mobile number"),
+  { target: { value: "9876543210" } }
+);
     fireEvent.change(
       screen.getAllByRole("combobox")[0],
       { target: { value: "IT" } }
@@ -167,7 +177,7 @@ describe("EmployeeForm RTL Testing", () => {
   });
 
   test("should reset form after successful submission", () => {
-    render(<EmployeeForm onSave={jest.fn()} />);
+    render(<EmployeeForm onSave={vi.fn()} />);
 
     fireEvent.change(
       screen.getByPlaceholderText("Enter employee name"),
@@ -178,7 +188,10 @@ describe("EmployeeForm RTL Testing", () => {
       screen.getByPlaceholderText("Enter email"),
       { target: { value: "ancy@gmail.com" } }
     );
-
+fireEvent.change(
+  screen.getByPlaceholderText("Enter 10-digit mobile number"),
+  { target: { value: "9876543210" } }
+);
     fireEvent.change(
       screen.getAllByRole("combobox")[0],
       { target: { value: "IT" } }

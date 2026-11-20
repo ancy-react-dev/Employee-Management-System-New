@@ -3,11 +3,26 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import EmployeeForm from "./EmployeeForm";
 
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
+import employeesReducer from "../features/employees/employeeSlice";
+
+const createTestStore = () =>
+  configureStore({
+    reducer: {
+      employees: employeesReducer,
+    },
+  });
+
 describe("EmployeeForm", () => {
   it("shows validation error when required fields are empty", () => {
     const onSave = vi.fn();
 
-    render(<EmployeeForm onSave={onSave} />);
+   render(
+  <Provider store={createTestStore()}>
+    <EmployeeForm onSave={onSave} />
+  </Provider>
+);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Add Employee" })
@@ -23,7 +38,11 @@ describe("EmployeeForm", () => {
   it("adds an employee when all required fields are valid", () => {
     const onSave = vi.fn();
 
-    render(<EmployeeForm onSave={onSave} />);
+  render(
+  <Provider store={createTestStore()}>
+    <EmployeeForm onSave={onSave} />
+  </Provider>
+);
 
     fireEvent.change(
       screen.getByPlaceholderText("Enter employee name"),
@@ -34,7 +53,10 @@ describe("EmployeeForm", () => {
       screen.getByPlaceholderText("Enter email"),
       { target: { value: "ancy@example.com" } }
     );
-
+fireEvent.change(
+  screen.getByPlaceholderText("Enter 10-digit mobile number"),
+  { target: { value: "9876543210" } }
+);
     fireEvent.change(
       document.querySelector('select[name="department"]')!,
       { target: { value: "IT" } }
