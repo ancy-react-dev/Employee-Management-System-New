@@ -112,24 +112,39 @@ const employeeSlice = createSlice({
         state.error = null;
       })
 
-      .addCase(fetchEmployees.fulfilled, (state, action) => {
-        state.loading = false;
+     .addCase(fetchEmployees.fulfilled, (state, action) => {
+  state.loading = false;
 
-        // Load API data only on the first visit.
-        // Do not restore deleted records after refresh.
-        if (!hasSavedEmployees) {
-          state.employees = action.payload;
-        }
-      })
+  if (!hasSavedEmployees) {
+    const uniqueEmployees = action.payload.filter(
+      (employee, index, self) =>
+        index === self.findIndex(
+          (item) =>
+            item.email.trim().toLowerCase() ===
+            employee.email.trim().toLowerCase()
+        )
+    );
 
+    state.employees = uniqueEmployees;
+  }
+})
       .addCase(fetchEmployees.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message ?? "Failed to fetch employees";
       })
 
       .addCase(addEmployeeAsync.fulfilled, (state, action) => {
-        state.employees.push(action.payload);
-      })
+  const newEmail = action.payload.email.trim().toLowerCase();
+
+  const duplicateEmail = state.employees.some(
+    (employee) =>
+      employee.email.trim().toLowerCase() === newEmail
+  );
+
+  if (!duplicateEmail) {
+    state.employees.push(action.payload);
+  }
+})
 
       .addCase(updateEmployeeAsync.fulfilled, (state, action) => {
         const index = state.employees.findIndex(

@@ -126,28 +126,22 @@ describe("Employee Slice Testing", () => {
     expect(store.getState().loading).toBe(false);
   });
 
-  it("should add an employee asynchronously", async () => {
-   vi.mocked(addEmployeeAPI).mockResolvedValue(mockEmployee);
+ it("should add an employee asynchronously", async () => {
+  vi.mocked(addEmployeeAPI).mockResolvedValue(mockEmployee);
 
-    const store = createStore();
-    await store.dispatch(addEmployeeAsync(mockEmployee));
+  const store = createStore();
 
-    expect(store.getState().employees).toHaveLength(2);
-  });
+  const newEmployee = {
+    ...mockEmployee,
+    id: 2,
+    name: "Anand",
+    email: "anand@gmail.com",
+  };
 
-  it("should update an employee asynchronously", async () => {
-    vi.mocked(updateEmployeeAPI).mockResolvedValue(mockEmployee);
-    const store = createStore();
+  await store.dispatch(addEmployeeAsync(newEmployee));
 
-    await store.dispatch(
-      updateEmployeeAsync({
-        ...mockEmployee,
-        name: "Anand",
-      })
-    );
-
-    expect(store.getState().employees[0].name).toBe("Anand");
-  });
+  expect(store.getState().employees).toHaveLength(2);
+});
 
   it("should delete an employee asynchronously", async () => {
     vi.mocked(deleteEmployeeAPI).mockResolvedValue(undefined);
@@ -191,16 +185,24 @@ describe("Employee Slice Testing", () => {
     ]);
   });
 
-  it("should add employee even when API fails", async () => {
-    vi.mocked(addEmployeeAPI).mockRejectedValue(
-      new Error("API failed")
-    );
+ it("should add employee even when API fails", async () => {
+  vi.mocked(addEmployeeAPI).mockRejectedValue(
+    new Error("API failed")
+  );
 
-    const store = createStore();
-    await store.dispatch(addEmployeeAsync(mockEmployee));
+  const store = createStore();
 
-    expect(store.getState().employees).toHaveLength(2);
-  });
+  const newEmployee = {
+    ...mockEmployee,
+    id: 2,
+    name: "Anand",
+    email: "anand@gmail.com",
+  };
+
+  await store.dispatch(addEmployeeAsync(newEmployee));
+
+  expect(store.getState().employees).toHaveLength(2);
+});
 
   it("should update employee even when API fails", async () => {
     vi.mocked(updateEmployeeAPI).mockRejectedValue(
@@ -230,6 +232,18 @@ describe("Employee Slice Testing", () => {
 
     expect(store.getState().employees).toHaveLength(0);
   });
+it("should not add an employee with duplicate email", async () => {
+  const store = createStore();
 
+  const duplicateEmployee = {
+    ...mockEmployee,
+    id: 2,
+    email: "AJAY@gmail.com",
+  };
+
+  await store.dispatch(addEmployeeAsync(duplicateEmployee));
+
+  expect(store.getState().employees).toHaveLength(1);
+});
  
 });

@@ -142,13 +142,16 @@ function EmployeeList() {
       setMessage("Please enter a valid email address.");
       return false;
     }
+const enteredEmail = form.email.trim().toLowerCase();
 
-   const duplicateEmail = employees.some(
-  (employee) =>
-    employee.email.trim().toLowerCase() ===
-      form.email.trim().toLowerCase() &&
-    employee.id !== (isEdit ? editingId : null)
-);
+const duplicateEmail = employees.some((employee) => {
+  const existingEmail = employee.email.trim().toLowerCase();
+
+  return (
+    existingEmail === enteredEmail &&
+    (!isEdit || employee.id !== editingId)
+  );
+});
 
 if (duplicateEmail) {
   setMessage("This email address is already registered.");
